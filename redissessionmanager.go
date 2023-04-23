@@ -46,15 +46,15 @@ func (sm *RedisSessionManager) Remove(key string) {
 	sm.client.Del(key)
 }
 
-func (sm *RedisSessionManager) Get(key string) Session {
+func (sm *RedisSessionManager) Get(key string) (Session, error) {
 	if sm.Exists(key) {
 		data, err := sm.client.Get(key).Bytes()
 		if err != nil {
-			return Session{}
+			return Session{}, ErrSessionNotFound
 		}
-		return sm.FromBinary(data)
+		return sm.FromBinary(data), nil
 	}
-	return Session{}
+	return Session{}, ErrSessionNotFound
 }
 
 func (sm *RedisSessionManager) Clean() {

@@ -3,10 +3,15 @@ package sessions
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+)
+
+var (
+	ErrSessionNotFound = errors.New("Session not found")
 )
 
 type MemorySessionManager struct {
@@ -63,16 +68,16 @@ func (sm *MemorySessionManager) Remove(key string) {
 	delete(sm.keys, key)
 }
 
-func (sm *MemorySessionManager) Get(key string) Session {
+func (sm *MemorySessionManager) Get(key string) (Session, error) {
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
 	session, v := sm.keys[key]
 	if v {
-		return session
+		return session, nil
 	}
 	return Session{
 		key: "",
-	}
+	}, ErrSessionNotFound
 }
 
 func (sm *MemorySessionManager) Clean() {

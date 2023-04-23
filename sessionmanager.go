@@ -2,7 +2,7 @@ package sessions
 
 type SessionManager interface {
 	CreateSession(userName string, isAdmin bool) (Session, bool)
-	Get(key string) Session
+	Get(key string) (Session, error)
 	GetSessionCount() int
 	Clean()
 	Add(session Session)
