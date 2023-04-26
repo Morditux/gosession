@@ -53,8 +53,8 @@ func (sm *MemorySessionManager) CreateSession(userName string, isAdmin bool) (*S
 		key:      uuid.New().String(),
 		userName: userName,
 		lastSeen: time.Now(),
-		isAdmin:  false,
-		isLogin:  false,
+		isAdmin:  isAdmin,
+		isLogged: false,
 		data:     make(map[string]interface{}),
 	}
 	sm.keys[session.key] = session
@@ -109,7 +109,7 @@ func (sm *MemorySessionManager) FromBinary(data []byte) *Session {
 		userName: internalSession.UserName,
 		lastSeen: internalSession.LastSeen,
 		isAdmin:  internalSession.IsAdmin,
-		isLogin:  internalSession.IsLogin,
+		isLogged: internalSession.IsLogin,
 		data:     internalSession.Data,
 	}
 }
@@ -128,7 +128,7 @@ func (sm *MemorySessionManager) ToBinary(session *Session) []byte {
 		UserName: session.userName,
 		LastSeen: session.lastSeen,
 		IsAdmin:  session.isAdmin,
-		IsLogin:  session.isLogin,
+		IsLogin:  session.isLogged,
 		Data:     session.data,
 	}
 	var buffer bytes.Buffer

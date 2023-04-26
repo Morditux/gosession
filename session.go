@@ -9,7 +9,7 @@ type Session struct {
 	key      string
 	userName string
 	lastSeen time.Time
-	isLogin  bool
+	isLogged bool
 	isAdmin  bool
 	data     map[string]interface{}
 	mutex    sync.RWMutex
@@ -52,13 +52,13 @@ func (s *Session) SetUserName(userName string) {
 func (s *Session) IsLogin() bool {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	return s.isLogin
+	return s.isLogged
 }
 
 func (s *Session) SetLogin(isLogin bool) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.isLogin = isLogin
+	s.isLogged = isLogin
 }
 
 func (s *Session) GetData(key string) interface{} {
