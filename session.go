@@ -12,7 +12,7 @@ type Session struct {
 	isLogin  bool
 	isAdmin  bool
 	data     map[string]interface{}
-	mutex    *sync.RWMutex
+	mutex    sync.RWMutex
 }
 
 func (s *Session) GetID() string {

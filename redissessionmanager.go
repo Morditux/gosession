@@ -27,12 +27,12 @@ func (sm *RedisSessionManager) GetSessionCount() int {
 	return int(sm.client.DBSize().Val())
 }
 
-func (sm *RedisSessionManager) Add(session Session) {
+func (sm *RedisSessionManager) Add(session *Session) {
 	sm.client.Set(session.key, sm.ToBinary(session), 0)
 }
 
-func (sm *RedisSessionManager) CreateSession(userName string, isAdmin bool) (Session, bool) {
-	session := Session{
+func (sm *RedisSessionManager) CreateSession(userName string, isAdmin bool) (*Session, bool) {
+	session := &Session{
 		key:      uuid.New().String(),
 		userName: userName,
 		lastSeen: time.Now(),
@@ -46,29 +46,29 @@ func (sm *RedisSessionManager) Remove(key string) {
 	sm.client.Del(key)
 }
 
-func (sm *RedisSessionManager) Get(key string) (Session, error) {
+func (sm *RedisSessionManager) Get(key string) (*Session, error) {
 	if sm.Exists(key) {
 		data, err := sm.client.Get(key).Bytes()
 		if err != nil {
-			return Session{}, ErrSessionNotFound
+			return &Session{}, ErrSessionNotFound
 		}
 		return sm.FromBinary(data), nil
 	}
-	return Session{}, ErrSessionNotFound
+	return &Session{}, ErrSessionNotFound
 }
 
 func (sm *RedisSessionManager) Clean() {
 	sm.client.FlushDB()
 }
 
-func (sm *RedisSessionManager) FromBinary(data []byte) Session {
-	var session Session
+func (sm *RedisSessionManager) FromBinary(data []byte) *Session {
+	session := &Session{}
 	dec := gob.NewDecoder(bytes.NewReader(data))
 	dec.Decode(&session)
 	return session
 }
 
-func (sm *RedisSessionManager) ToBinary(session Session) []byte {
+func (sm *RedisSessionManager) ToBinary(session *Session) []byte {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	enc.Encode(session)

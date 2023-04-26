@@ -15,14 +15,14 @@ var (
 )
 
 type MemorySessionManager struct {
-	keys  map[string]Session
+	keys  map[string]*Session
 	mutex sync.RWMutex
 }
 
 // NewMemorySessionManager - Create a new MemorySessionManager object
 func NewMemorySessionManager() *MemorySessionManager {
 	sm := &MemorySessionManager{
-		keys: make(map[string]Session),
+		keys: make(map[string]*Session),
 	}
 	return sm
 }
@@ -40,23 +40,22 @@ func (sm *MemorySessionManager) GetSessionCount() int {
 	return len(sm.keys)
 }
 
-func (sm *MemorySessionManager) Add(session Session) {
+func (sm *MemorySessionManager) Add(session *Session) {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 	sm.keys[session.key] = session
 }
 
-func (sm *MemorySessionManager) CreateSession(userName string, isAdmin bool) (Session, bool) {
+func (sm *MemorySessionManager) CreateSession(userName string, isAdmin bool) (*Session, bool) {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
-	session := Session{
+	session := &Session{
 		key:      uuid.New().String(),
 		userName: userName,
 		lastSeen: time.Now(),
 		isAdmin:  false,
 		isLogin:  false,
 		data:     make(map[string]interface{}),
-		mutex:    &sync.RWMutex{},
 	}
 	sm.keys[session.key] = session
 	return session, true
@@ -68,14 +67,14 @@ func (sm *MemorySessionManager) Remove(key string) {
 	delete(sm.keys, key)
 }
 
-func (sm *MemorySessionManager) Get(key string) (Session, error) {
+func (sm *MemorySessionManager) Get(key string) (*Session, error) {
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
 	session, v := sm.keys[key]
 	if v {
 		return session, nil
 	}
-	return Session{
+	return &Session{
 		key: "",
 	}, ErrSessionNotFound
 }
@@ -90,7 +89,7 @@ func (sm *MemorySessionManager) Clean() {
 	}
 }
 
-func (sm *MemorySessionManager) FromBinary(data []byte) Session {
+func (sm *MemorySessionManager) FromBinary(data []byte) *Session {
 	type InternalSession struct {
 		Key      string
 		UserName string
@@ -105,7 +104,7 @@ func (sm *MemorySessionManager) FromBinary(data []byte) Session {
 	if err != nil {
 		panic(err)
 	}
-	return Session{
+	return &Session{
 		key:      internalSession.Key,
 		userName: internalSession.UserName,
 		lastSeen: internalSession.LastSeen,
@@ -115,7 +114,7 @@ func (sm *MemorySessionManager) FromBinary(data []byte) Session {
 	}
 }
 
-func (sm *MemorySessionManager) ToBinary(session Session) []byte {
+func (sm *MemorySessionManager) ToBinary(session *Session) []byte {
 	type InternalSession struct {
 		Key      string
 		UserName string
